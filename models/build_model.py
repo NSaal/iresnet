@@ -1,4 +1,4 @@
-from models import resnet, resstage, iresnet, resgroup, resgroupfix, iresgroupfix, iresgroup
+from models import resnet, resstage, iresnet, resgroup, resgroupfix, iresgroupfix, iresgroup, seiresnet
 
 
 def build_model(args):
@@ -139,6 +139,58 @@ def build_model(args):
                 pretrained=args.pretrained,
                 num_classes=args.n_classes,
                 zero_init_residual=args.zero_init_residual)
+
+
+##
+if args.arch == 'seiresnet':
+      assert args.model_depth in [18, 34, 50, 101, 152, 200, 302, 404, 1001]
+
+       if args.model_depth == 18:
+            model = seiresnet.seiresnet18(
+                pretrained=args.pretrained,
+                num_classes=args.n_classes,
+                zero_init_residual=args.zero_init_residual)
+        elif args.model_depth == 34:
+            model = seiresnet.seiresnet34(
+                pretrained=args.pretrained,
+                num_classes=args.n_classes,
+                zero_init_residual=args.zero_init_residual)
+        elif args.model_depth == 50:
+            model = seiresnet.seiresnet50(
+                pretrained=args.pretrained,
+                num_classes=args.n_classes,
+                zero_init_residual=args.zero_init_residual)
+        elif args.model_depth == 101:
+            model = seiresnet.seiresnet101(
+                pretrained=args.pretrained,
+                num_classes=args.n_classes,
+                zero_init_residual=args.zero_init_residual)
+        elif args.model_depth == 152:
+            model = seiresnet.seiresnet152(
+                pretrained=args.pretrained,
+                num_classes=args.n_classes,
+                zero_init_residual=args.zero_init_residual)
+        elif args.model_depth == 200:
+            model = seiresnet.seiresnet200(
+                pretrained=args.pretrained,
+                num_classes=args.n_classes,
+                zero_init_residual=args.zero_init_residual)
+        elif args.model_depth == 302:
+            model = seiresnet.seiresnet302(
+                pretrained=args.pretrained,
+                num_classes=args.n_classes,
+                zero_init_residual=args.zero_init_residual)
+        elif args.model_depth == 404:
+            model = seiresnet.seiresnet404(
+                pretrained=args.pretrained,
+                num_classes=args.n_classes,
+                zero_init_residual=args.zero_init_residual)
+        elif args.model_depth == 1001:
+            model = seiresnet.seiresnet1001(
+                pretrained=args.pretrained,
+                num_classes=args.n_classes,
+                zero_init_residual=args.zero_init_residual)
+##
 
     if args.arch == 'resstage':
         assert args.model_depth in [18, 34, 50, 101, 152, 200]

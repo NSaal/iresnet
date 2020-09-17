@@ -12,20 +12,20 @@ except ImportError:
             os.getenv('XDG_CACHE_HOME', '~/.cache'), 'torch')))
 default_cache_path = os.path.join(torch_cache_home, 'pretrained')
 
-__all__ = ['iResNet', 'iresnet18', 'iresnet34', 'iresnet50', 'iresnet101',
-           'iresnet152', 'iresnet200', 'iresnet302', 'iresnet404', 'iresnet1001']
+__all__ = ['seiResNet', 'seiresnet18', 'seiresnet34', 'seiresnet50', 'seiresnet101',
+           'seiresnet152', 'seiresnet200', 'seiresnet302', 'seiresnet404', 'seiresnet1001']
 
-model_urls = {
-    'iresnet18': 'Trained model not available yet!!',
-    'iresnet34': 'Trained model not available yet!!',
-    'iresnet50': 'https://drive.google.com/uc?export=download&id=1Waw3ob8KPXCY9iCLdAD6RUA0nvVguc6K',
-    'iresnet101': 'https://drive.google.com/uc?export=download&id=1cZ4XhwZfUOm_o0WZvenknHIqgeqkY34y',
-    'iresnet152': 'https://drive.google.com/uc?export=download&id=10heFLYX7VNlaSrDy4SZbdOOV9xwzwyli',
-    'iresnet200': 'https://drive.google.com/uc?export=download&id=1Ao-f--jNU7MYPqSW8UMonXVrq3mkLRpW',
-    'iresnet302': 'https://drive.google.com/uc?export=download&id=1UcyvLhLzORJZBUQDNJdsx3USCloXZT6V',
-    'iresnet404': 'https://drive.google.com/uc?export=download&id=1hEOHErsD6AF1b3qQi56mgxvYDneTvMIq',
-    'iresnet1001': 'Trained model not available yet!!',
-}
+# model_urls = {
+#     'iresnet18': 'Trained model not available yet!!',
+#     'iresnet34': 'Trained model not available yet!!',
+#     'iresnet50': 'https://drive.google.com/uc?export=download&id=1Waw3ob8KPXCY9iCLdAD6RUA0nvVguc6K',
+#     'iresnet101': 'https://drive.google.com/uc?export=download&id=1cZ4XhwZfUOm_o0WZvenknHIqgeqkY34y',
+#     'iresnet152': 'https://drive.google.com/uc?export=download&id=10heFLYX7VNlaSrDy4SZbdOOV9xwzwyli',
+#     'iresnet200': 'https://drive.google.com/uc?export=download&id=1Ao-f--jNU7MYPqSW8UMonXVrq3mkLRpW',
+#     'iresnet302': 'https://drive.google.com/uc?export=download&id=1UcyvLhLzORJZBUQDNJdsx3USCloXZT6V',
+#     'iresnet404': 'https://drive.google.com/uc?export=download&id=1hEOHErsD6AF1b3qQi56mgxvYDneTvMIq',
+#     'iresnet1001': 'Trained model not available yet!!',
+# }
 
 
 def conv3x3(in_planes, out_planes, stride=1):
@@ -38,6 +38,7 @@ def conv1x1(in_planes, out_planes, stride=1):
     """1x1 convolution"""
     return nn.Conv2d(in_planes, out_planes, kernel_size=1, stride=stride, bias=False)
 
+#修改网络结构，按记事本来
 class BasicBlock(nn.Module):
     expansion = 1
 
@@ -54,6 +55,10 @@ class BasicBlock(nn.Module):
         self.bn1 = norm_layer(planes)
         self.relu = nn.ReLU(inplace=True)
         self.conv2 = conv3x3(planes, planes)
+       
+        ##
+        self.se = SELayer(planes * 4, reduction)
+        ##
 
         if start_block:
             self.bn2 = norm_layer(planes)
@@ -88,10 +93,13 @@ class BasicBlock(nn.Module):
 
         if self.start_block:
             out = self.bn2(out)
+       
+        ##
+        out = self.se(out)
+        ##
 
         if self.downsample is not None:
             identity = self.downsample(x)
-
         out += identity
 
         if self.end_block:
@@ -119,7 +127,11 @@ class Bottleneck(nn.Module):
         self.conv2 = conv3x3(planes, planes, stride)
         self.bn2 = norm_layer(planes)
         self.conv3 = conv1x1(planes, planes * self.expansion)
-
+       
+        ##
+        self.se = SELayer(planes * 4, reduction)
+        ##
+        
         if start_block:
             self.bn3 = norm_layer(planes * self.expansion)
 
@@ -158,6 +170,10 @@ class Bottleneck(nn.Module):
 
         if self.start_block:
             out = self.bn3(out)
+        
+        ##
+        out = self.se(out)
+        ##
 
         if self.downsample is not None:
             identity = self.downsample(x)
@@ -171,7 +187,7 @@ class Bottleneck(nn.Module):
         return out
 
 
-class iResNet(nn.Module):
+class seiResNet(nn.Module):
 
     def __init__(self, block, layers, num_classes=1000, zero_init_residual=False, norm_layer=None, dropout_prob0=0.0):
         super(iResNet, self).__init__()
@@ -266,127 +282,127 @@ class iResNet(nn.Module):
         return x
 
 
-def iresnet18(pretrained=False, **kwargs):
+def seiresnet18(pretrained=False, **kwargs):
     """Constructs a iResNet-18 model.
 
     Args:
         pretrained (bool): If True, returns a model pre-trained on ImageNet
     """
-    model = iResNet(BasicBlock, [2, 2, 2, 2], **kwargs)
+    model = seiResNet(BasicBlock, [2, 2, 2, 2], **kwargs)
     if pretrained:
         os.makedirs(default_cache_path, exist_ok=True)
-        model.load_state_dict(torch.load(download_from_url(model_urls['iresnet18'],
+        model.load_state_dict(torch.load(download_from_url(model_urls['seiresnet18'],
                                                            root=default_cache_path)))
     return model
 
 
-def iresnet34(pretrained=False, **kwargs):
+def seiresnet34(pretrained=False, **kwargs):
     """Constructs a iResNet-34 model.
 
     Args:
         pretrained (bool): If True, returns a model pre-trained on ImageNet
     """
-    model = iResNet(BasicBlock, [3, 4, 6, 3], **kwargs)
+    model = seiResNet(BasicBlock, [3, 4, 6, 3], **kwargs)
     if pretrained:
         os.makedirs(default_cache_path, exist_ok=True)
-        model.load_state_dict(torch.load(download_from_url(model_urls['iresnet34'],
+        model.load_state_dict(torch.load(download_from_url(model_urls['seiresnet34'],
                                                            root=default_cache_path)))
     return model
 
 
-def iresnet50(pretrained=False, **kwargs):
+def seiresnet50(pretrained=False, **kwargs):
     """Constructs a iResNet-50 model.
 
     Args:
         pretrained (bool): If True, returns a model pre-trained on ImageNet
     """
-    model = iResNet(Bottleneck, [3, 4, 6, 3], **kwargs)
+    model = seiResNet(Bottleneck, [3, 4, 6, 3], **kwargs)
     if pretrained:
         os.makedirs(default_cache_path, exist_ok=True)
-        model.load_state_dict(torch.load(download_from_url(model_urls['iresnet50'],
+        model.load_state_dict(torch.load(download_from_url(model_urls['seiresnet50'],
                                                            root=default_cache_path)))
     return model
 
 
-def iresnet101(pretrained=False, **kwargs):
+def seiresnet101(pretrained=False, **kwargs):
     """Constructs a iResNet-101 model.
 
     Args:
         pretrained (bool): If True, returns a model pre-trained on ImageNet
     """
-    model = iResNet(Bottleneck, [3, 4, 23, 3], **kwargs)
+    model = seiResNet(Bottleneck, [3, 4, 23, 3], **kwargs)
     if pretrained:
         os.makedirs(default_cache_path, exist_ok=True)
-        model.load_state_dict(torch.load(download_from_url(model_urls['iresnet101'],
+        model.load_state_dict(torch.load(download_from_url(model_urls['seiresnet101'],
                                                            root=default_cache_path)))
     return model
 
 
-def iresnet152(pretrained=False, **kwargs):
+def seiresnet152(pretrained=False, **kwargs):
     """Constructs a iResNet-152 model.
 
     Args:
         pretrained (bool): If True, returns a model pre-trained on ImageNet
     """
-    model = iResNet(Bottleneck, [3, 8, 36, 3], **kwargs)
+    model = seiResNet(Bottleneck, [3, 8, 36, 3], **kwargs)
     if pretrained:
         os.makedirs(default_cache_path, exist_ok=True)
-        model.load_state_dict(torch.load(download_from_url(model_urls['iresnet152'],
+        model.load_state_dict(torch.load(download_from_url(model_urls['seiresnet152'],
                                                            root=default_cache_path)))
     return model
 
 
-def iresnet200(pretrained=False, **kwargs):
+def seiresnet200(pretrained=False, **kwargs):
     """Constructs a iResNet-200 model.
 
     Args:
         pretrained (bool): If True, returns a model pre-trained on ImageNet
     """
-    model = iResNet(Bottleneck, [3, 24, 36, 3], **kwargs)
+    model = seiResNet(Bottleneck, [3, 24, 36, 3], **kwargs)
     if pretrained:
         os.makedirs(default_cache_path, exist_ok=True)
-        model.load_state_dict(torch.load(download_from_url(model_urls['iresnet200'],
+        model.load_state_dict(torch.load(download_from_url(model_urls['seiresnet200'],
                                                            root=default_cache_path)))
     return model
 
 
-def iresnet302(pretrained=False, **kwargs):
+def seiresnet302(pretrained=False, **kwargs):
     """Constructs a iResNet-302 model.
 
     Args:
         pretrained (bool): If True, returns a model pre-trained on ImageNet
     """
-    model = iResNet(Bottleneck, [4,  34, 58, 4], **kwargs)
+    model = seiResNet(Bottleneck, [4,  34, 58, 4], **kwargs)
     if pretrained:
         os.makedirs(default_cache_path, exist_ok=True)
-        model.load_state_dict(torch.load(download_from_url(model_urls['iresnet302'],
+        model.load_state_dict(torch.load(download_from_url(model_urls['seiresnet302'],
                                                            root=default_cache_path)))
     return model
 
 
-def iresnet404(pretrained=False, **kwargs):
+def seiresnet404(pretrained=False, **kwargs):
     """Constructs a iResNet-404 model.
 
     Args:
         pretrained (bool): If True, returns a model pre-trained on ImageNet
     """
-    model = iResNet(Bottleneck, [4,  46, 80, 4], **kwargs)
+    model = seiResNet(Bottleneck, [4,  46, 80, 4], **kwargs)
     if pretrained:
         os.makedirs(default_cache_path, exist_ok=True)
-        model.load_state_dict(torch.load(download_from_url(model_urls['iresnet404'],
+        model.load_state_dict(torch.load(download_from_url(model_urls['seiresnet404'],
                                                            root=default_cache_path)))
     return model
 
 
-def iresnet1001(pretrained=False, **kwargs):
+def seiresnet1001(pretrained=False, **kwargs):
     """Constructs a iResNet-1001 model.
 
     Args:
         pretrained (bool): If True, returns a model pre-trained on ImageNet
     """
-    model = iResNet(Bottleneck, [4,  155, 170, 4], **kwargs)
+    model = seiResNet(Bottleneck, [4,  155, 170, 4], **kwargs)
     if pretrained:
         os.makedirs(default_cache_path, exist_ok=True)
-        model.load_state_dict(torch.load(download_from_url(model_urls['iresnet1001'],
+        model.load_state_dict(torch.load(download_from_url(model_urls['seiresnet1001'],
                                                            root=default_cache_path)))
     return model
