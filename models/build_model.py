@@ -142,10 +142,10 @@ def build_model(args):
 
 
 ##
-if args.arch == 'seiresnet':
-      assert args.model_depth in [18, 34, 50, 101, 152, 200, 302, 404, 1001]
+    if args.arch == 'seiresnet':
+        assert args.model_depth in [18, 34, 50, 101, 152, 200, 302, 404, 1001]
 
-       if args.model_depth == 18:
+        if args.model_depth == 18:
             model = seiresnet.seiresnet18(
                 pretrained=args.pretrained,
                 num_classes=args.n_classes,

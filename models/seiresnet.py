@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import os
 from div.download_from_url import download_from_url
+from models.SE_module import SELayer
 
 try:
     from torch.hub import _get_torch_home
@@ -43,7 +44,7 @@ class BasicBlock(nn.Module):
     expansion = 1
 
     def __init__(self, inplanes, planes, stride=1, downsample=None, norm_layer=None,
-                 start_block=False, end_block=False, exclude_bn0=False):
+                 start_block=False, end_block=False, exclude_bn0=False, reduction=16):
         super(BasicBlock, self).__init__()
         if norm_layer is None:
             norm_layer = nn.BatchNorm2d
@@ -113,7 +114,7 @@ class Bottleneck(nn.Module):
     expansion = 4
 
     def __init__(self, inplanes, planes, stride=1, downsample=None, norm_layer=None,
-                 start_block=False, end_block=False, exclude_bn0=False):
+                 start_block=False, end_block=False, exclude_bn0=False, reduction=16):
         super(Bottleneck, self).__init__()
         if norm_layer is None:
             norm_layer = nn.BatchNorm2d
@@ -190,7 +191,7 @@ class Bottleneck(nn.Module):
 class seiResNet(nn.Module):
 
     def __init__(self, block, layers, num_classes=1000, zero_init_residual=False, norm_layer=None, dropout_prob0=0.0):
-        super(iResNet, self).__init__()
+        super(seiResNet, self).__init__()
         if norm_layer is None:
             norm_layer = nn.BatchNorm2d
         self.inplanes = 64
