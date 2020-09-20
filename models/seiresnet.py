@@ -128,7 +128,6 @@ class Bottleneck(nn.Module):
         self.conv2 = conv3x3(planes, planes, stride)
         self.bn2 = norm_layer(planes)
         self.conv3 = conv1x1(planes, planes * self.expansion)
-       
         ##
         self.se = SELayer(planes * 4, reduction)
         ##
@@ -171,7 +170,6 @@ class Bottleneck(nn.Module):
 
         if self.start_block:
             out = self.bn3(out)
-        
         ##
         out = self.se(out)
         ##

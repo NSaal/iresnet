@@ -1,0 +1,1 @@
+python main.py --data /raid/728DataSet/ILSVRC12/ILSVRC2012 --result_path ./result_path --arch seiresnet --model_depth 50
