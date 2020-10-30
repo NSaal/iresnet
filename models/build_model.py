@@ -1,4 +1,4 @@
-from models import resnet, resstage, iresnet, resgroup, resgroupfix, iresgroupfix, iresgroup, seiresnet
+from models import resnet, resstage, iresnet, resgroup, resgroupfix, iresgroupfix, iresgroup, seiresnet, seiresgroup
 
 
 def build_model(args):
@@ -140,7 +140,6 @@ def build_model(args):
                 num_classes=args.n_classes,
                 zero_init_residual=args.zero_init_residual)
 
-
 ##
     if args.arch == 'seiresnet':
         assert args.model_depth in [18, 34, 50, 101, 152, 200, 302, 404, 1001]
@@ -190,7 +189,33 @@ def build_model(args):
                 pretrained=args.pretrained,
                 num_classes=args.n_classes,
                 zero_init_residual=args.zero_init_residual)
+
+    if args.arch == 'seiresgroup':
+        assert args.model_depth in [50, 101, 152]
+
+        if args.model_depth == 50:
+            model = seiresgroup.iresgroup50(
+                pretrained=args.pretrained,
+                num_classes=args.n_classes,
+                zero_init_residual=args.zero_init_residual,
+                groups=args.groups)
+        elif args.model_depth == 101:
+            model = seiresgroup.iresgroup101(
+                pretrained=args.pretrained,
+                num_classes=args.n_classes,
+                zero_init_residual=args.zero_init_residual,
+                groups=args.groups)
+        elif args.model_depth == 152:
+            model = seiresgroup.iresgroup152(
+                pretrained=args.pretrained,
+                num_classes=args.n_classes,
+                zero_init_residual=args.zero_init_residual,
+                groups=args.groups)
+   
 ##
+
+
+
 
     if args.arch == 'resstage':
         assert args.model_depth in [18, 34, 50, 101, 152, 200]

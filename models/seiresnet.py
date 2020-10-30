@@ -16,18 +16,6 @@ default_cache_path = os.path.join(torch_cache_home, 'pretrained')
 __all__ = ['seiResNet', 'seiresnet18', 'seiresnet34', 'seiresnet50', 'seiresnet101',
            'seiresnet152', 'seiresnet200', 'seiresnet302', 'seiresnet404', 'seiresnet1001']
 
-# model_urls = {
-#     'iresnet18': 'Trained model not available yet!!',
-#     'iresnet34': 'Trained model not available yet!!',
-#     'iresnet50': 'https://drive.google.com/uc?export=download&id=1Waw3ob8KPXCY9iCLdAD6RUA0nvVguc6K',
-#     'iresnet101': 'https://drive.google.com/uc?export=download&id=1cZ4XhwZfUOm_o0WZvenknHIqgeqkY34y',
-#     'iresnet152': 'https://drive.google.com/uc?export=download&id=10heFLYX7VNlaSrDy4SZbdOOV9xwzwyli',
-#     'iresnet200': 'https://drive.google.com/uc?export=download&id=1Ao-f--jNU7MYPqSW8UMonXVrq3mkLRpW',
-#     'iresnet302': 'https://drive.google.com/uc?export=download&id=1UcyvLhLzORJZBUQDNJdsx3USCloXZT6V',
-#     'iresnet404': 'https://drive.google.com/uc?export=download&id=1hEOHErsD6AF1b3qQi56mgxvYDneTvMIq',
-#     'iresnet1001': 'Trained model not available yet!!',
-# }
-
 
 def conv3x3(in_planes, out_planes, stride=1):
     """3x3 convolution with padding"""
@@ -58,7 +46,7 @@ class BasicBlock(nn.Module):
         self.conv2 = conv3x3(planes, planes)
        
         ##
-        self.se = SELayer(planes * 4, reduction)
+        self.se = SELayer(planes, reduction)
         ##
 
         if start_block:

@@ -1,6 +1,7 @@
 import argparse
 
-parser = argparse.ArgumentParser(description='PyTorch ImageNet Training for iResNets')
+parser = argparse.ArgumentParser(
+    description='PyTorch ImageNet Training for iResNets')
 parser.add_argument('--data', metavar='DIR',
                     help='path to dataset')
 parser.add_argument('-a', '--arch', metavar='ARCH', default='resnet',
@@ -46,7 +47,7 @@ parser.add_argument('--dist-backend', default='nccl', type=str,
 parser.add_argument('--seed', default=None, type=int,
                     help='seed for initializing training. ')
 parser.add_argument('--gpu', default=None, type=int,
-                    help='GPU id to use.')#None
+                    help='GPU id to use.')  # None
 parser.add_argument('--multiprocessing-distributed', action='store_true',
                     help='Use multi-processing distributed training to launch '
                          'N processes per node, which has N GPUs. This is the '
@@ -57,10 +58,11 @@ parser.add_argument('--n_classes', default=1000, type=int,
 parser.add_argument('--lr_scheduler', default=None, type=str,
                     help='The learning rate scheduler. Options: MultiStepLR')
 parser.add_argument('--lr_steps', default=[30, 60, 80], type=int, nargs="+",
-                        metavar='LRSteps', help='epochs to decay learning rate by 10')
+                    metavar='LRSteps', help='epochs to decay learning rate by 10')
 parser.add_argument('--lr_reduce_factor', default=0.1, type=float,
                     help='Factor by which the learning rate will be reduced. new_lr = lr * factor. Default: 0.1.')
-parser.add_argument('--nesterov', action='store_true', default=False, help='Nesterov momentum')
+parser.add_argument('--nesterov', action='store_true',
+                    default=False, help='Nesterov momentum')
 parser.add_argument('--zero_init_residual', action='store_true',
                     help='If true, Zero-initialize the last BN in each residual branch,')
 parser.add_argument('--groups', default=None, type=int,

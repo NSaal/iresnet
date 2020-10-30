@@ -4,6 +4,7 @@ import os
 from div.download_from_url import download_from_url
 ##
 from models.shuffle import channel_shuffle as shuffle
+from models.SE_module import SELayer
 ##
 try:
     from torch.hub import _get_torch_home
@@ -14,7 +15,7 @@ except ImportError:
             os.getenv('XDG_CACHE_HOME', '~/.cache'), 'torch')))
 default_cache_path = os.path.join(torch_cache_home, 'pretrained')
 
-__all__ = ['iResGroup', 'iresgroup50', 'iresgroup101', 'iresgroup152']
+__all__ = ['seiResGroup', 'seiresgroup50', 'seiresgroup101', 'seiresgroup152']
 
 
 model_urls = {
@@ -37,10 +38,12 @@ def conv1x1(in_planes, out_planes, stride=1):
 
 class ResGroupBlock(nn.Module):
     reduction = 2
+    planes = 0
 
     def __init__(self, inplanes, planes, groups, stride=1, downsample=None, norm_layer=None,
-                 start_block=False, end_block=False, exclude_bn0=False):
+                 start_block=False, end_block=False, exclude_bn0=False, reduction2=8):
         super(ResGroupBlock, self).__init__()
+        self.planes = planes
         if norm_layer is None:
             norm_layer = nn.BatchNorm2d
         # Both self.conv2 and self.downsample layers downsample the input when stride != 1
@@ -52,15 +55,20 @@ class ResGroupBlock(nn.Module):
         ##
         self.conv1 = conv1x1(inplanes, planes)
         self.bn1 = norm_layer(planes)
+
         self.conv2 = conv3x3(planes, planes, groups=groups, stride=stride)
         self.bn2 = norm_layer(planes)
         self.conv3 = conv1x1(planes, planes // self.reduction)
-
+        ##
+        self.se = SELayer((planes // self.reduction), reduction2)
+        ##
         if start_block:
             self.bn3 = norm_layer(planes // self.reduction)
+            self.sestart = SELayer(planes // self.reduction, reduction2)
 
         if end_block:
             self.bn3 = norm_layer(planes // self.reduction)
+            #self.seend = SELayer(planes // self.reduction, reduction2)
 
         self.relu = nn.ReLU(inplace=True)
         self.downsample = downsample
@@ -85,9 +93,11 @@ class ResGroupBlock(nn.Module):
 
         out = self.bn1(out)
         out = self.relu(out)
+        # print(out.shape)
         ##
         out = shuffle(out, self.groups)
         ##
+        # print(out.shape)
         out = self.conv2(out)
         out = self.bn2(out)
         out = self.relu(out)
@@ -96,7 +106,15 @@ class ResGroupBlock(nn.Module):
 
         if self.start_block:
             out = self.bn3(out)
-
+            #print("beforeSEstart:", out.shape)
+            out = self.sestart(out)
+        else:
+            #print("shape beforeSE:",out.shape)
+            ##
+            # print(self.planes/self.groups)
+            out = self.se(out)
+            ##
+        # print("afterSE:",out.shape)
         if self.downsample is not None:
             identity = self.downsample(x)
 

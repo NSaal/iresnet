@@ -16,7 +16,7 @@ import torch.utils.data.distributed
 import torchvision.transforms as transforms
 import torchvision.datasets as datasets
 import torchvision.models as models
-
+import torchvision
 import args_file
 import json
 from utils import Logger
@@ -24,9 +24,8 @@ from models.build_model import build_model
 
 
 model_names = sorted(name for name in models.__dict__
-    if name.islower() and not name.startswith("__")
-    and callable(models.__dict__[name]))
-
+                     if name.islower() and not name.startswith("__")
+                     and callable(models.__dict__[name]))
 
 
 best_acc1 = 0
@@ -61,7 +60,8 @@ def main():
         args.world_size = ngpus_per_node * args.world_size
         # Use torch.multiprocessing.spawn to launch distributed processes: the
         # main_worker process function
-        mp.spawn(main_worker, nprocs=ngpus_per_node, args=(ngpus_per_node, args))
+        mp.spawn(main_worker, nprocs=ngpus_per_node,
+                 args=(ngpus_per_node, args))
     else:
         # Simply call main_worker function
         main_worker(args.gpu, ngpus_per_node, args)
@@ -119,7 +119,8 @@ def main_worker(gpu, ngpus_per_node, args):
             # ourselves based on the total number of GPUs we have
             args.batch_size = int(args.batch_size / ngpus_per_node)
             args.workers = int(args.workers / ngpus_per_node)
-            model = torch.nn.parallel.DistributedDataParallel(model, device_ids=[args.gpu])
+            model = torch.nn.parallel.DistributedDataParallel(
+                model, device_ids=[args.gpu])
         else:
             model.cuda()
             # DistributedDataParallel will divide and allocate batch_size to all
@@ -139,14 +140,16 @@ def main_worker(gpu, ngpus_per_node, args):
     # define loss function (criterion) and optimizer
     criterion = nn.CrossEntropyLoss().cuda(args.gpu)
 
-    optimizer = torch.optim.SGD(model.parameters(), args.lr,
+    optimizer = torch.optim.SGD([{'params': model.parameters(), 'initial_lr': 0.1}], args.lr,
                                 momentum=args.momentum,
                                 weight_decay=args.weight_decay,
                                 nesterov=args.nesterov)
-
+    # optimizer = torch.optim.Adam([{'params': model.parameters(), 'initial_lr': 0.1}], args.lr,
+    #                              weight_decay=args.weight_decay,)
     if args.lr_scheduler == 'MultiStepLR':
         print("using MultiStepLR with steps: ", args.lr_steps)
-        scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, args.lr_steps, gamma=args.lr_reduce_factor)
+        scheduler = torch.optim.lr_scheduler.MultiStepLR(
+            optimizer, args.lr_steps, gamma=args.lr_reduce_factor)
 
     # optionally resume from a checkpoint
     if args.resume:
@@ -176,41 +179,75 @@ def main_worker(gpu, ngpus_per_node, args):
 
     cudnn.benchmark = True
 
-    # Data loading code
-    traindir = os.path.join(args.data, 'train')
-    valdir = os.path.join(args.data, 'val')
+    # load cifar10
+    # transform = transforms.Compose(
+    #     [transforms.ToTensor(),
+    #      transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
+
     normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
                                      std=[0.229, 0.224, 0.225])
 
-    train_trans = [
-        transforms.RandomResizedCrop(args.train_crop_size),  # transforms.RandomResizedCrop(224)
+    transform = transforms.Compose([
+        # transforms.RandomResizedCrop(224)
+        transforms.RandomResizedCrop(args.train_crop_size),
         transforms.RandomHorizontalFlip(),
         transforms.ToTensor(),
         normalize,
-    ]
+    ])
 
-    train_dataset = datasets.ImageFolder(
-        traindir,
-        transforms.Compose(train_trans))
-
-    if args.distributed:
-        train_sampler = torch.utils.data.distributed.DistributedSampler(train_dataset)
-    else:
-        train_sampler = None
-
+    train_dataset = torchvision.datasets.CIFAR10(root='G:\\datasets', train=True,
+                                                 transform=transform)
     train_loader = torch.utils.data.DataLoader(
-        train_dataset, batch_size=args.batch_size, shuffle=(train_sampler is None),
-        num_workers=args.workers, pin_memory=True, sampler=train_sampler)
+        train_dataset, batch_size=args.batch_size, shuffle=True,
+        num_workers=args.workers, pin_memory=True, sampler=None)
+    testset = torchvision.datasets.CIFAR10(root='G:\\datasets', train=False,
+                                           transform=transform)
+    val_loader = torch.utils.data.DataLoader(testset, batch_size=args.batch_size,
+                                             shuffle=False, num_workers=args.workers, pin_memory=True)
 
-    val_loader = torch.utils.data.DataLoader(
-        datasets.ImageFolder(valdir, transforms.Compose([
-            transforms.Resize(args.val_resize),#transforms.Resize(256)
-            transforms.CenterCrop(args.val_crop_size),#transforms.CenterCrop(224)
-            transforms.ToTensor(),
-            normalize,
-        ])),
-        batch_size=args.batch_size, shuffle=False,
-        num_workers=args.workers, pin_memory=True)
+    classes = ('plane', 'car', 'bird', 'cat',
+               'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
+    ##
+
+    # Data loading code
+    # traindir = os.path.join(args.data, 'train')
+    # valdir = os.path.join(args.data, 'val')
+    # normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
+    #                                  std=[0.229, 0.224, 0.225])
+
+    # train_trans = [
+    #     # transforms.RandomResizedCrop(224)
+    #     transforms.RandomResizedCrop(args.train_crop_size),
+    #     transforms.RandomHorizontalFlip(),
+    #     transforms.ToTensor(),
+    #     normalize,
+    # ]
+
+    # train_dataset = datasets.ImageFolder(
+    #     traindir,
+    #     transforms.Compose(train_trans))
+
+    # if args.distributed:
+    #     train_sampler = torch.utils.data.distributed.DistributedSampler(
+    #         train_dataset)
+    # else:
+    #     train_sampler = None
+
+    # train_loader = torch.utils.data.DataLoader(
+    #     train_dataset, batch_size=args.batch_size, shuffle=(
+    #         train_sampler is None),
+    #     num_workers=args.workers, pin_memory=True, sampler=train_sampler)
+
+    # val_loader = torch.utils.data.DataLoader(
+    #     datasets.ImageFolder(valdir, transforms.Compose([
+    #         transforms.Resize(args.val_resize),  # transforms.Resize(256)
+    #         # transforms.CenterCrop(224)
+    #         transforms.CenterCrop(args.val_crop_size),
+    #         transforms.ToTensor(),
+    #         normalize,
+    #     ])),
+    #     batch_size=args.batch_size, shuffle=False,
+    #     num_workers=args.workers, pin_memory=True)
 
     if args.evaluate:
         validate(val_loader, model, criterion, args)
@@ -224,7 +261,8 @@ def main_worker(gpu, ngpus_per_node, args):
     train_logger = Logger(os.path.join(args.result_path, 'train.log'),
                           ['epoch', 'loss', 'acc1', 'acc5', 'lr'], mode=mode)
 
-    val_logger = Logger(os.path.join(args.result_path, 'val.log'), ['epoch', 'loss', 'acc1', 'acc5'], mode=mode)
+    val_logger = Logger(os.path.join(args.result_path, 'val.log'), [
+                        'epoch', 'loss', 'acc1', 'acc5'], mode=mode)
 
     for epoch in range(args.start_epoch, args.epochs):
         if args.distributed:
@@ -248,7 +286,8 @@ def main_worker(gpu, ngpus_per_node, args):
         })
 
         # evaluate on validation set
-        val_acc1, val_acc5, val_loss = validate(val_loader, model, criterion, args)
+        val_acc1, val_acc5, val_loss = validate(
+            val_loader, model, criterion, args)
 
         val_logger.log({
             'epoch': epoch+1,
@@ -364,11 +403,13 @@ def save_checkpoint(state, is_best, filename='checkpoint.pth.tar'):
 
     torch.save(state, filename + 'checkpoint.pth.tar')
     if is_best:
-        shutil.copyfile(filename + 'checkpoint.pth.tar', filename + 'model_best.pth.tar')
+        shutil.copyfile(filename + 'checkpoint.pth.tar',
+                        filename + 'model_best.pth.tar')
 
 
 class AverageMeter(object):
     """Computes and stores the average and current value"""
+
     def __init__(self, name, fmt=':f'):
         self.name = name
         self.fmt = fmt
