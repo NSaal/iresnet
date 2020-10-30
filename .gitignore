@@ -366,3 +366,5 @@ runs/
 result_path/
 
 checkdataset.py
+/historylog/
+/results/
