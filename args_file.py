@@ -73,3 +73,5 @@ parser.add_argument('--val_resize', default=256, type=int,
                     help='The value to resize the shorter size of the image (for validation). default: 256')
 parser.add_argument('--val_crop_size', default=224, type=int,
                     help='The crop size for validation. default: 224')
+parser.add_argument('--cifarroot', default='G:\\datasets', type=str,
+                    help='the root of cifat10 dataset,default: G:\\datasets')
