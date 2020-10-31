@@ -195,7 +195,7 @@ def main_worker(gpu, ngpus_per_node, args):
         normalize,
     ])
 
-    train_dataset = torchvision.datasets.CIFAR10(root=args.cifarroot, train=True,
+    train_dataset = torchvision.datasets.CIFAR100(root=args.cifarroot, train=True,
                                                  transform=transform)
     train_loader = torch.utils.data.DataLoader(
         train_dataset, batch_size=args.batch_size, shuffle=True,

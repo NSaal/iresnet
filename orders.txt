@@ -1,0 +1,1 @@
+python main.py --cifarroot /raid/728DataSet--result_path ./result_path --arch seiresgroup --model_depth 50 -p 50 --lr_steps 20 40 60 -b 16 --groups 32
